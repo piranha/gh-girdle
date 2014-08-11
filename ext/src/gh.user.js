@@ -63,7 +63,8 @@ function gh_news() {
                 return !v || v === 'simple' || v === 'alert';
             }));
 
-            var $key = $('.title a', $e).last();
+            var links = $('.title a', $e);
+            var $key = $e.hasClass('fork') ? links.slice(1, 2) : links.last();
             var repo = extract_repo($key);
 
             if (_.isUndefined(compressed[repo])) {
