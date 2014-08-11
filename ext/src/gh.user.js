@@ -51,6 +51,7 @@ function gh_news() {
     function engirdle(root) {
         var compressed = {};
         var $root = $(root);
+        var $pagination = $root.find('.pagination');
         var this_user = $.trim($('.name', '#user-links').text());
 
         $('.alert', $root).each(function(i, e) {
@@ -75,10 +76,10 @@ function gh_news() {
 
         _.each(compressed, function(actions, repo) {
             var $html;
+
             if (_.isUndefined(containers[repo])) {
                 $html = $(render_template(repo_template, {name:repo}));
-
-                $root.prepend($html);
+                $html.insertBefore($pagination);
 
                 containers[repo] = $html;
 
@@ -100,6 +101,7 @@ function gh_news() {
             } else {
                 $html = containers[repo];
             }
+
             var $dropzone = $("[data-dropzone='"+repo+"']", $html);
             var $compressed = $("[data-compressed='"+repo+"']", $html);
             _.each(actions, function(e) {
@@ -114,6 +116,7 @@ function gh_news() {
                 var ctx = {icon: icon_type, title: title};
                 $compressed.append($(render_template(icon_template, ctx)));
             });
+
             var l = $('.alert', $dropzone).length;
             var t = (l == 1) ? "had 1 event" : "had " + l + " events";
             $('[data-length]', $html).text(t);
