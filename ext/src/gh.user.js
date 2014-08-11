@@ -9,11 +9,14 @@
 function gh_news() {
     var containers = {};
 
-		var render_template = function(tmpl, ctx) {
-				// A custom, ghetto template function is required since firefox doesn't like
-				// eval (which is what _.template users) in context of greasemonkey scripts
-				return tmpl.replace(/<%-\s*(\w+)\s*%>/g, function(m, p1) { return ctx[p1]; });
-		};
+    var render_template = function(tmpl, ctx) {
+        // A custom, ghetto template function is required since firefox doesn't
+        // like eval (which is what _.template uses) in context of greasemonkey
+        // scripts
+        return tmpl.replace(/<%-\s*(\w+)\s*%>/g, function(m, p1) {
+            return ctx[p1];
+        });
+    };
 
     var repo_template = '' +
         '<div class="alert" style="padding-left: 0px;" data-girdled="<%- name %>">' +
@@ -33,30 +36,33 @@ function gh_news() {
 
     var icon_template = '<span class="octicon <%- icon %>" style="margin-right: 5px;" title="<%- title %>"></span>';
 
-		function extract_repo($el) {
-			var name = $el.text();
-			if (name.indexOf('/') === -1) {
-				name = $el.attr('href');
-				if (name[0] === '/') {
-					name = name.substring(1);
-				}
-			}
-			var repo = _.first(name.split(/@|#/));
-			return repo;
-		};
+    function extract_repo($el) {
+      var name = $el.text();
+      if (name.indexOf('/') === -1) {
+        name = $el.attr('href');
+        if (name[0] === '/') {
+          name = name.substring(1);
+        }
+      }
+      var repo = _.first(name.split(/@|#/));
+      return repo;
+    }
 
     function engirdle(root) {
         var compressed = {};
         var $root = $(root);
         var this_user = $.trim($('.name', '#user-links').text());
+
         $('.alert', $root).each(function(i, e) {
             var $e = $(e);
             if ($e.attr("data-girdled")) {
                 return;
             }
             var alert_classes = $e.attr('class').split(' ');
-            var alert_type = _.first(_.reject(alert_classes, function(v){ return !v || v === 'simple' || v === 'alert'; }));
-            
+            var alert_type = _.first(_.reject(alert_classes, function(v){
+                return !v || v === 'simple' || v === 'alert';
+            }));
+
             var $key = $('.title a', $e).last();
             var repo = extract_repo($key);
 
@@ -97,10 +103,15 @@ function gh_news() {
             var $compressed = $("[data-compressed='"+repo+"']", $html);
             _.each(actions, function(e) {
                 $dropzone.append(e);
-                var octicons = $('.octicon, .mega-octicon', e).attr('class').split(' ');
-                var icon_type = _.first(_.reject(octicons, function(v){ return !v || v === 'octicon' || v === 'mega-octicon'; }));
+                var octicons = $('.octicon, .mega-octicon', e)
+                    .attr('class')
+                    .split(' ');
+                var icon_type = _.first(_.reject(octicons, function(v){
+                    return !v || v === 'octicon' || v === 'mega-octicon';
+                }));
                 var title = $.trim($('.title', e).text());
-                $compressed.append($(render_template(icon_template, {icon:icon_type, title: title})));
+                var ctx = {icon: icon_type, title: title};
+                $compressed.append($(render_template(icon_template, ctx)));
             });
             var l = $('.alert', $dropzone).length;
             var t = (l == 1) ? "had 1 event" : "had " + l + " events";
@@ -117,8 +128,8 @@ function gh_news() {
     run();
 
     window.addEventListener("message", function(event) {
-        if (event.source != window) { return; }
-        if (event.data.type && (event.data.type == "GH_GIRDLE")) {
+        if ((event.source == window) &&
+            (event.data.type == "GH_GIRDLE")) {
             run();
         }
     }, false);
@@ -130,7 +141,7 @@ function binder() {
     $.fn.pageUpdate = function (a) {
         pageUpdate.call(this, a);
         window.postMessage({type: "GH_GIRDLE", text: "#YOLO"}, "*");
-    }
+    };
 }
 
 function inject(func) {
@@ -138,9 +149,7 @@ function inject(func) {
 
     el = document.createElement("script");
     el.setAttribute("type", "text/javascript");
-
-    text = document.createTextNode('('+func+')()');
-    el.appendChild(text);
+    el.innerHTML = '(' + func + ')()';
 
     return document.body.appendChild(el);
 }
